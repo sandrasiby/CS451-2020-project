@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.List;
 
 public class Main {
 
@@ -56,6 +57,15 @@ public class Main {
         coordinator.waitOnBarrier();
 
 	System.out.println("Broadcasting messages...");
+    //Start sending
+    int totalMessages = parser.totalMessages();
+    if (totalMessages >= 0) {
+        System.out.println("messages!" + Integer.toString(totalMessages));
+        Host myHost = parser.getMyHost();
+        List<Host> allHosts = parser.hosts();
+        Broadcast broadcaster = new Broadcast(myHost);
+        broadcaster.sendMessages(totalMessages, allHosts, myHost);
+    }
 
 	System.out.println("Signaling end of broadcasting messages");
         coordinator.finishedBroadcasting();

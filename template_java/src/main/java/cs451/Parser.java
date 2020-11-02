@@ -104,4 +104,18 @@ public class Parser {
         return configParser.getPath();
     }
 
+    public int totalMessages() {
+        return configParser.getTotalMessages();
+    }
+
+    public Host getMyHost() {
+        for (Host host: hosts()) {
+            if (host.getId() == myId()) {
+                //System.out.println("Found me!" + Integer.toString(myId()));
+                return host;
+            }
+        }
+        return null;
+    }
+
 }
