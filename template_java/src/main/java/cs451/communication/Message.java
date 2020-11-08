@@ -72,4 +72,34 @@ public class Message implements Serializable {
 		System.out.println("Type: " + msgType);
 		System.out.println("**************************");
 	}
+
+	//Used this as a reference for overriding: https://www.infoworld.com/article/3305792/comparing-java-objects-with-equals-and-hashcode.html
+
+	@Override
+	public boolean equals(Object obj) {
+
+		try {
+			if(obj == this) return true; 
+			if((obj == null) || (obj.getClass() != this.getClass())) return false; 
+			Message m = (Message) obj;
+			if ((this.getContent().equals(m.getContent())) && 
+					(this.getSrcAddress().equals(m.getSrcAddress())) &&
+					(this.getSrcPort() == m.getSrcPort()) && 
+					(this.getSrcId() == m.getSrcId()) && 
+					(this.getDstAddress().equals(m.getDstAddress())) &&
+					(this.getDstPort() == m.getDstPort()) && 
+					(this.getDstId() == m.getDstId()) &&
+					(this.getType().equals(m.getType()))) 
+				return true;
+			return false;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	@Override
+	public int hashCode() {
+		return srcId;
+	}
+
 }

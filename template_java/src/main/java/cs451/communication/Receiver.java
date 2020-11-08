@@ -17,12 +17,14 @@ public class Receiver extends Thread {
 	private Sender sender;
 	public volatile ConcurrentHashMap<Message, Integer> deliveredStatus;
 	private List<Message> delivered;
+	private FileHandler fh;
 
-	public Receiver(Sender sender, int port, InetAddress address) throws IOException {
+	public Receiver(Sender sender, String outputFile) throws IOException {
 		//this.uLink = new UDPLink(port, address);
 		this.sender = sender;
 		this.deliveredStatus = new ConcurrentHashMap<Message, Integer>();
 		this.delivered = new ArrayList<>();
+		this.fh = new FileHandler(outputFile);
 	}
 
 	public void run() {
@@ -47,8 +49,7 @@ public class Receiver extends Thread {
  					receivedMsg.getSrcId(), "ACK");
  				//System.out.println("Created ack message " + ackMessage);
  				sender.sendMessage(ackMessage);
-
- 				//deliverMessage(receivedMsg);
+ 				deliverMessage(receivedMsg);
  			} else if (msgType.equals("ACK")) {
  				//Got ack: update sentStatus
  				//System.out.println("Got ACK, update status");
@@ -67,8 +68,9 @@ public class Receiver extends Thread {
     public void deliverMessage(Message message) {
     	
     	if (delivered.contains(message) == false) {
-    		System.out.println("Delivering " + message.getContent());
+    		System.out.println("Add to delivery queue: " + message.getContent());
     		delivered.add(message);
+    		fh.writeDeliverMessage(message);
     	}
     }
 }

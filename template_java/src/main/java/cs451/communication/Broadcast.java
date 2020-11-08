@@ -15,12 +15,12 @@ public class Broadcast {
 	private Sender mySender;
 	private Receiver myReceiver;
 
-	public Broadcast(Host myHost) {
+	public Broadcast(Host myHost, String outputFile) {
 		this.status = 0;
 
 		try {
 			this.mySender = new Sender(myHost.getPort(), InetAddress.getByName(myHost.getIp()));
-			this.myReceiver = new Receiver(mySender, myHost.getPort(), InetAddress.getByName(myHost.getIp()));
+			this.myReceiver = new Receiver(mySender, outputFile);
 			this.myReceiver.start();
 			try {
 				TimeUnit.SECONDS.sleep(1);
