@@ -20,9 +20,14 @@ public class Broadcast {
 
 		try {
 			this.mySender = new Sender(myHost.getPort(), InetAddress.getByName(myHost.getIp()));
-			this.mySender.start();
 			this.myReceiver = new Receiver(mySender, myHost.getPort(), InetAddress.getByName(myHost.getIp()));
 			this.myReceiver.start();
+			try {
+				TimeUnit.SECONDS.sleep(1);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			this.mySender.start();
 			System.out.println("Started sender and receiver threads");
 			try {
 				TimeUnit.SECONDS.sleep(1);
@@ -61,13 +66,15 @@ public class Broadcast {
 	    	String msgContent = Integer.toString(m);
 	    	InetAddress srcAddress = InetAddress.getByName(srcHost.getIp());
 	    	int srcPort = srcHost.getPort();
+	    	int srcId = srcHost.getId();
 	    	InetAddress dstAddress = InetAddress.getByName(dstHost.getIp());
 	    	int dstPort = dstHost.getPort();
+	    	int dstId = dstHost.getId();
 	    	String msgType = "NORMAL";
 
-	    	Message message = new Message(msgContent, srcAddress, srcPort, dstAddress, dstPort, msgType);
+	    	Message message = new Message(msgContent, srcAddress, srcPort, srcId,
+	    		dstAddress, dstPort, dstId, msgType);
     		return message;
-
 	    } catch (UnknownHostException e) {
             e.printStackTrace();
         }

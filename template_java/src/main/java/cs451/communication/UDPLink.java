@@ -14,8 +14,6 @@ import java.lang.ClassNotFoundException;
 // https://www.pegaxchange.com/2018/01/23/simple-udp-server-and-client-socket-java/
 
 public class UDPLink {
-	 
-    private byte[] buf = new byte[256];
 
     private DatagramSocket socket;
     private boolean running;
@@ -33,7 +31,7 @@ public class UDPLink {
         byte[] buf;
 
         try {
-        	System.out.println("In UDPsend, Try to send: " + message.getContent());
+        	//System.out.println("In UDPsend, Try to send: " + message.getContent());
             buf = serializeMessage(message);
             DatagramPacket packet = new DatagramPacket(buf, buf.length, message.getDstAddress(), message.getDstPort());
             socket.send(packet);       
@@ -51,16 +49,25 @@ public class UDPLink {
     public Message receiveMessage() {
 
     	Message receivedMsg;
+    	int receivedBytes = 0;
+    	byte[] buf = new byte[2048];
     	
     	try {
-            DatagramPacket packet = new DatagramPacket(buf, buf.length);
+    		DatagramPacket packet = new DatagramPacket(buf, buf.length);
             socket.receive(packet);
-            receivedMsg = deserializeMessage(packet.getData());
+            receivedBytes = packet.getLength(); 
+            byte[] myObject = new byte[receivedBytes];
+			for(int i = 0; i < receivedBytes; i++)
+			{
+			     myObject[i] = buf[i];
+			}
+            receivedMsg = deserializeMessage(myObject);
             return receivedMsg;
 	    } catch (SocketException e) {
         	System.err.println("Problem with the receiving UDP packet!");
         	//return -1;
         } catch (IOException e) {
+        	System.err.println("io exception in receiveMessage");
             e.printStackTrace();
         }
         return null;
@@ -92,12 +99,14 @@ public class UDPLink {
     public Message deserializeMessage(byte[] data) {
     	
     	try {
-	    	ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(data));
+    		ObjectInputStream iStream = new ObjectInputStream(new ByteArrayInputStream(data));
+	    	//System.out.println("got stream");
 			Message message = (Message) iStream.readObject();
+			//System.out.println("in deserialization " + message.getContent() + Integer.toString(message.getSrcPort()));
 			iStream.close();
-
 			return message;
 		}  catch (IOException e) {
+			System.out.println("in exception");
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
         	e.printStackTrace();
