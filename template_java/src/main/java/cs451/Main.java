@@ -63,7 +63,7 @@ public class Main {
         System.out.println("messages!" + Integer.toString(totalMessages));
         Host myHost = parser.getMyHost();
         List<Host> allHosts = parser.hosts();
-        Broadcast broadcaster = new Broadcast(myHost, parser.output());
+        Broadcast broadcaster = new Broadcast(myHost, parser.output(), allHosts);
         broadcaster.sendMessages(totalMessages, allHosts, myHost);
     }
 

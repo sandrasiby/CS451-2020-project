@@ -16,7 +16,8 @@ public class ShutdownHook extends Thread {
 	public void run(){
 		System.out.println("Shutting down and writing to files");
 		Receiver.getFileHandler().writeBroadcastList(Receiver.getSender().getBroadcastList());
-		Receiver.getFileHandler().writeDeliverList(Receiver.getDeliveredList());
+		//Receiver.getFileHandler().writeDeliverList(Receiver.getDeliveredList());
+		Receiver.getFileHandler().writeDeliverList(Receiver.getURBHandler().getDeliveredList());
 		Receiver.getFileHandler().close();
 	}
 }
