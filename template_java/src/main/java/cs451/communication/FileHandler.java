@@ -4,6 +4,8 @@ import java.io.*;
 import java.util.List;
 import java.util.ArrayList;
 
+//Used as reference: https://beginnersbook.com/2014/01/how-to-append-to-a-file-in-java/
+
 public class FileHandler {
 
 	private File file;
@@ -24,8 +26,19 @@ public class FileHandler {
         }
 	}
 
-	public void writeBroadcastInfo() {
-		System.out.println("To complete");
+	public void writeBroadcastList(List<Message> broadcasted) {
+		
+		String line;
+		try {
+			for (Message message: broadcasted) {
+				line = "b " + message.getContentAsString();
+				bwriter.write(line);
+				bwriter.newLine();
+				bwriter.flush();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	public void writeDeliverMessage(Message message) {

@@ -14,10 +14,11 @@ public class Receiver extends Thread {
 
 	//private UDPLink uLink;
 	private boolean running;
-	private Sender sender;
+	private static Sender sender;
 	public volatile ConcurrentHashMap<Message, Integer> deliveredStatus;
-	private List<Message> delivered;
-	private FileHandler fh;
+	private static List<Message> delivered;
+	private static FileHandler fh;
+	//private FIFOHandler fifo;
 
 	public Receiver(Sender sender, String outputFile) throws IOException {
 		//this.uLink = new UDPLink(port, address);
@@ -25,6 +26,8 @@ public class Receiver extends Thread {
 		this.deliveredStatus = new ConcurrentHashMap<Message, Integer>();
 		this.delivered = new ArrayList<>();
 		this.fh = new FileHandler(outputFile);
+		//this.fifo = new FIFOHandler(sender);
+		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 	}
 
 	public void run() {
@@ -44,12 +47,15 @@ public class Receiver extends Thread {
  				//Got message: send ACK
  				//System.out.println("Got normal message!");
  				Message ackMessage = new Message(receivedMsg.getContent(),
+ 					receivedMsg.getOriginalSrcId(),
  					receivedMsg.getDstAddress(), receivedMsg.getDstPort(), receivedMsg.getDstId(),
  					receivedMsg.getSrcAddress(), receivedMsg.getSrcPort(), 
  					receivedMsg.getSrcId(), "ACK");
  				//System.out.println("Created ack message " + ackMessage);
  				sender.sendMessage(ackMessage);
- 				deliverMessage(receivedMsg);
+ 				deliverMessagePL(receivedMsg);
+ 				//fifo.handleReceivedMessage(receivedMsg);
+
  			} else if (msgType.equals("ACK")) {
  				//Got ack: update sentStatus
  				//System.out.println("Got ACK, update status");
@@ -65,13 +71,25 @@ public class Receiver extends Thread {
         }
     }
 
-    public void deliverMessage(Message message) {
+    public void deliverMessagePL(Message message) {
     	
     	if (delivered.contains(message) == false) {
     		System.out.println("Add to delivery queue: " + message.getContent());
     		delivered.add(message);
-    		fh.writeDeliverMessage(message);
+    		//fh.writeDeliverMessage(message);
     	}
+    }
+
+    public static Sender getSender() {
+    	return sender;
+    }
+
+    public static List<Message> getDeliveredList() {
+    	return delivered;
+    }
+
+    public static FileHandler getFileHandler() {
+    	return fh;
     }
 }
 

@@ -15,11 +15,11 @@ public class Broadcast {
 	private Sender mySender;
 	private Receiver myReceiver;
 
-	public Broadcast(Host myHost, String outputFile) {
+	public Broadcast(Host myHost, String outputFile, int numHosts) {
 		this.status = 0;
 
 		try {
-			this.mySender = new Sender(myHost.getPort(), InetAddress.getByName(myHost.getIp()));
+			this.mySender = new Sender(myHost.getPort(), InetAddress.getByName(myHost.getIp()), numHosts);
 			this.myReceiver = new Receiver(mySender, outputFile);
 			this.myReceiver.start();
 			try {
@@ -63,7 +63,8 @@ public class Broadcast {
     public Message createMessage(int m, Host srcHost, Host dstHost) {
 
     	try {
-	    	String msgContent = Integer.toString(m);
+	    	int msgContent = m;
+	    	int originalSrcId = srcHost.getId();
 	    	InetAddress srcAddress = InetAddress.getByName(srcHost.getIp());
 	    	int srcPort = srcHost.getPort();
 	    	int srcId = srcHost.getId();
@@ -72,7 +73,7 @@ public class Broadcast {
 	    	int dstId = dstHost.getId();
 	    	String msgType = "NORMAL";
 
-	    	Message message = new Message(msgContent, srcAddress, srcPort, srcId,
+	    	Message message = new Message(msgContent, originalSrcId, srcAddress, srcPort, srcId,
 	    		dstAddress, dstPort, dstId, msgType);
     		return message;
 	    } catch (UnknownHostException e) {

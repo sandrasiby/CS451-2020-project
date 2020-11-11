@@ -9,6 +9,8 @@ import java.util.HashMap;
 import java.util.concurrent.*;
 import java.util.Queue;
 import java.util.LinkedList;
+import java.util.List;
+import java.util.ArrayList;
 
 public class Sender extends Thread {
 
@@ -17,12 +19,18 @@ public class Sender extends Thread {
 	private volatile Queue<Message> sendMessageQueue;
 	public ConcurrentHashMap<String, Integer> sentStatus;
 	private Queue<Message> sendAckQueue;
+	private static List<Message> broadcastList;
+	private int latestBcastMsg;
+	private int numHosts;
 
-	public Sender(int port, InetAddress address) throws IOException {
+	public Sender(int port, InetAddress address, int numHosts) throws IOException {
 		this.uLink = new UDPLink(port, address);
 		this.sendMessageQueue = new ConcurrentLinkedQueue();
 		this.sendAckQueue = new ConcurrentLinkedQueue<>();
 		this.sentStatus = new ConcurrentHashMap<String, Integer>();
+		this.broadcastList = new ArrayList();
+		this.latestBcastMsg = 0;
+		this.numHosts = numHosts;
 	}
 
 	public void run() {
@@ -39,7 +47,7 @@ public class Sender extends Thread {
  			if (sendMessageQueue.size() > 0) {
  				//System.out.println("There are messages to send");
  				messageToSend = sendMessageQueue.element();
- 				key = messageToSend.getContent() + "_" + Integer.toString(messageToSend.getDstId());
+ 				key = Integer.toString(messageToSend.getContent()) + "_" + Integer.toString(messageToSend.getDstId());
  				//if status is delivered, remove
  				// else, send it
  				if (sentStatus.containsKey(key)) {
@@ -55,9 +63,15 @@ public class Sender extends Thread {
  						System.out.println("Ack queue: " + sendAckQueue);
  					} else {
  						uLink.sendMessage(messageToSend);
+ 						if ((messageToSend.getDstId() == numHosts) &&
+ 							(messageToSend.getContent() == latestBcastMsg + 1)) {
+ 								broadcastList.add(messageToSend);
+ 								latestBcastMsg = latestBcastMsg + 1;
+ 							}
  					}
  				} else {
- 					uLink.sendMessage(messageToSend);
+ 					System.err.println("Key does not exist?");
+ 					//uLink.sendMessage(messageToSend);
  				}
  			}
 
@@ -93,7 +107,7 @@ public class Sender extends Thread {
     	String key;
     	String msgType = message.getType();
     	//System.out.println("In Sender.sendmsg, Getting message type: " + msgType);
-    	key = message.getContent() + "_" + Integer.toString(message.getDstId());
+    	key = Integer.toString(message.getContent()) + "_" + Integer.toString(message.getDstId());
 
     	if (msgType.equals("NORMAL")) {
     		sendMessageQueue.add(message);
@@ -113,25 +127,12 @@ public class Sender extends Thread {
     				sendAckQueue.add(message);
     		//	}
     		//}
-    	}
-    	
+    	}    	
     }
 
-    // public void cleanAckQueue() {
-
-    // 	String key;
-    // 	List<Message> elementsToRemove = new List<Message>();
-    // 	Iterator elements = sendAckQueue.iterator(); 
-
-    // 	while (elements.hasNext()) { 
-    // 		Message ackMessage = elements.next();
-    // 		key = ackMessage.getContent() + "_" + Integer.toString(ackMessage.getDstId());
-    // 		if (sentStatus.containsKey(key)) {
-
-    // 		}
-    //         System.out.println(values.next()); 
-    //     } 
-    // }
+     public static List<Message> getBroadcastList() {
+    	return broadcastList;
+    }
 
     public UDPLink getLink() {
     	return uLink;
