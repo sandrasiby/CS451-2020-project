@@ -76,7 +76,6 @@ public class URBHandler {
     	System.out.println(ackURBStatus.get(key).size());
     	System.out.println(numHosts/2);
     	if ((ackURBStatus.get(key).size() >= numHosts/2) && (delivered.contains(message) == false)) {
-    		System.out.println("here!!!");
     		return true;
     	}
     	return false;

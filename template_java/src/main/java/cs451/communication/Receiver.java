@@ -18,8 +18,8 @@ public class Receiver extends Thread {
 	public volatile ConcurrentHashMap<Message, Integer> deliveredStatus;
 	private static List<Message> delivered;
 	private static FileHandler fh;
-	private static URBHandler urb;
-	//private FIFOHandler fifo;
+	//private static URBHandler urb;
+	private static FIFOHandler fifo;
 
 	public Receiver(Sender sender, String outputFile, List<Host> hosts, Host myHost) throws IOException {
 		//this.uLink = new UDPLink(port, address);
@@ -27,8 +27,8 @@ public class Receiver extends Thread {
 		this.deliveredStatus = new ConcurrentHashMap<Message, Integer>();
 		this.delivered = new ArrayList<>();
 		this.fh = new FileHandler(outputFile);
-		this.urb = new URBHandler(sender, hosts, myHost);
-		//this.fifo = new FIFOHandler(sender);
+		//this.urb = new URBHandler(sender, hosts, myHost);
+		this.fifo = new FIFOHandler(sender, hosts, myHost);
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 	}
 
@@ -55,9 +55,9 @@ public class Receiver extends Thread {
  					receivedMsg.getSrcId(), "ACK");
  				//System.out.println("Created ack message " + ackMessage);
  				sender.sendMessage(ackMessage);
- 				urb.bebDeliverMessage(receivedMsg);
+ 				//urb.bebDeliverMessage(receivedMsg);
  				//deliverMessagePL(receivedMsg);
- 				//fifo.handleReceivedMessage(receivedMsg);
+ 				fifo.handleReceivedMessage(receivedMsg);
 
  			} else if (msgType.equals("ACK")) {
  				//Got ack: update sentStatus
@@ -95,8 +95,12 @@ public class Receiver extends Thread {
     	return fh;
     }
 
-    public static URBHandler getURBHandler() {
-    	return urb;
+    // public static URBHandler getURBHandler() {
+    // 	return urb;
+    // }
+
+    public static FIFOHandler getFIFOHandler() {
+    	return fifo;
     }
 }
 
