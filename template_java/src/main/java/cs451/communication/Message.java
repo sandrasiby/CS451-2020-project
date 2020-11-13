@@ -13,6 +13,7 @@ public class Message implements Serializable {
 
 	private int msgContent;
 	private int originalSrcId;
+	//private int sequenceNumber;
 	private int dstPort;
 	private InetAddress dstAddress;
 	private int srcPort;
@@ -81,7 +82,13 @@ public class Message implements Serializable {
 	}
 
 	public String getLinkLayerKey() {
-		return Integer.toString(msgContent) + "_" + Integer.toString(dstId);
+		return Integer.toString(msgContent) + "_" + Integer.toString(originalSrcId) 
+			+ "_" + Integer.toString(dstId);
+	}
+
+	public String getLinkLayerAckKey() {
+		return Integer.toString(msgContent) + "_" + Integer.toString(originalSrcId) 
+			+ "_" + Integer.toString(srcId);
 	}
 
 	public String getAppLayerKey() {

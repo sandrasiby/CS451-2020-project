@@ -21,7 +21,7 @@ public class Broadcast {
 		int numHosts = hosts.size();
 
 		try {
-			this.mySender = new Sender(myHost.getPort(), InetAddress.getByName(myHost.getIp()), numHosts);
+			this.mySender = new Sender(myHost, numHosts);
 			this.myReceiver = new Receiver(mySender, outputFile, hosts, myHost);
 			this.myReceiver.start();
 			try {

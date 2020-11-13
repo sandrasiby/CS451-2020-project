@@ -17,9 +17,10 @@ public class FileHandler {
 		try {
 			this.file = new File(outputFile);
 			if(!this.file.exists()){
-	    	   this.file.createNewFile();
+				System.out.println("creating file: " + outputFile);
+	    		this.file.createNewFile();
 	    	}
-			this.writer = new FileWriter(this.file, true);
+			this.writer = new FileWriter(this.file);
 			this.bwriter = new BufferedWriter(writer);
 		} catch (IOException e) {
             e.printStackTrace();
@@ -54,12 +55,12 @@ public class FileHandler {
         }
 	}
 
-	public void writeDeliverList(List<Message> delivered) {
+	public void writeDeliverList(List<AppMessage> delivered) {
 
 		String line;
 		try {
-			for (Message message: delivered) {
-				line = "d " + Integer.toString(message.getSrcId()) + " " + message.getContent();
+			for (AppMessage message: delivered) {
+				line = "d " + Integer.toString(message.getOriginalSrcId()) + " " + message.getContent();
 				bwriter.write(line);
 				bwriter.newLine();
 				bwriter.flush();

@@ -62,7 +62,8 @@ public class Receiver extends Thread {
  			} else if (msgType.equals("ACK")) {
  				//Got ack: update sentStatus
  				//System.out.println("Got ACK, update status");
- 				key = receivedMsg.getContent() + "_" + Integer.toString(receivedMsg.getSrcId());
+ 				//key = receivedMsg.getContent() + "_" + Integer.toString(receivedMsg.getSrcId());
+ 				key = receivedMsg.getLinkLayerAckKey();
  				if (sender.sentStatus.containsKey(key)) {
  					if (sender.sentStatus.get(key) == 0) {
  						sender.sentStatus.computeIfPresent(key, (k, v) -> new Integer(1));

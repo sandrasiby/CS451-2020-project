@@ -16,7 +16,7 @@ import java.util.ArrayList;
 public class FIFOHandler {
 
 	public ConcurrentHashMap<Integer, Integer> nextSequence;
-	public static List<Message> fifoDelivered;
+	public static List<AppMessage> fifoDelivered;
 	public static URBHandler urb;
 
 	public FIFOHandler(Sender sender, List<Host> hosts, Host myHost) {
@@ -29,14 +29,12 @@ public class FIFOHandler {
 	public void handleReceivedMessage(Message message) {
 		System.out.println("We're fifo handling");
 		urb.bebDeliverMessage(message);
-		fifoDeliver(message);
+		fifoDeliver();
 	}
 
-	public void fifoDeliver(Message message) {
+	public void fifoDeliver() {
 
-		int incomingMessageSender = message.getOriginalSrcId();
-		
-		for (Message m: urb.getDeliveredList()) {
+		for (AppMessage m: urb.getDeliveredList()) {
 
 			int messageSender = m.getOriginalSrcId();
 			if (nextSequence.containsKey(messageSender) == false ) {
@@ -57,7 +55,7 @@ public class FIFOHandler {
     	return urb;
     }
 
-	public static List<Message> getDeliveredList() {
+	public static List<AppMessage> getDeliveredList() {
     	return fifoDelivered;
     }
 }
