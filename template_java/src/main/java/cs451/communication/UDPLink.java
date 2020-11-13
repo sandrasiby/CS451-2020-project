@@ -9,30 +9,38 @@ import java.util.HashMap;
 import java.util.concurrent.*; 
 import java.lang.ClassNotFoundException;
 
-// I used these links as reference:
+// Used these links as reference to set up UDP:
 // https://www.baeldung.com/udp-in-java
 // https://www.pegaxchange.com/2018/01/23/simple-udp-server-and-client-socket-java/
 
+/* The UDPLink class is used to handle Datagram exchanges via sockets.
+*/
+
 public class UDPLink {
 
+    /*  UDPLink consists of the following:
+        address: Address for socket creation
+        port: Port for socket creation
+        socket: Socket for data exchange
+    */
+
     private DatagramSocket socket;
-    private boolean running;
     private int port;
     private InetAddress address;
     
     public UDPLink(int port, InetAddress address) throws IOException {
         this.port = port;
         this.address = address;
-        socket = new DatagramSocket(this.port, this.address);
+        this.socket = new DatagramSocket(this.port, this.address);
     }
 
+    //Function to send a message. Message is put in a datagram packet.
     public int sendMessage(Message message) {
 
         byte[] buf;
 
         try {
-        	//System.out.println("In UDPsend, Try to send: " + message.getContent());
-            buf = serializeMessage(message);
+        	buf = serializeMessage(message);
             DatagramPacket packet = new DatagramPacket(buf, buf.length, message.getDstAddress(), message.getDstPort());
             socket.send(packet);       
         } catch (SocketException e) {
@@ -45,7 +53,7 @@ public class UDPLink {
         return 0;
     }
 
-
+    //Function to receive a message
     public Message receiveMessage() {
 
     	Message receivedMsg;
@@ -77,7 +85,8 @@ public class UDPLink {
     	socket.close();
     }
 
-    // For serialization/deserialization, I used: 
+    // Functions to serialize and deserialize messages (for putting in buffer)
+    // For serialization/deserialization code, I used: 
     // https://stackoverflow.com/questions/4252294/sending-objects-across-network-using-udp-in-java
     	
     public byte[] serializeMessage(Message message) {

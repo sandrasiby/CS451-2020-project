@@ -11,7 +11,20 @@ import java.util.List;
 import java.util.ArrayList;
 import java.net.UnknownHostException;
 
+/* The URBHandler class is used to handle URB operations.
+   We use a majority-ACK URB. 
+*/
+
 public class URBHandler {
+
+    /*  URBHandler consists of the following:
+        sender: Sender object to handle message forwards
+        myHost: Process' own details (for forwarding)
+        hosts: All process details (for forwarding)
+        forwardStatus: HashMap to keep track of message forwarding
+        ackURBStatus: HashMap to keep track of acks (for majority ack URB)
+        delivered: List of messages that are URB delivered
+    */
 
 	public ConcurrentHashMap<String, Integer> forwardStatus;
 	public ConcurrentHashMap<String, List<Integer>> ackURBStatus;
@@ -29,8 +42,8 @@ public class URBHandler {
 		this.delivered = new ArrayList<>();
 	}
 
+    //Function to update delivery status for a PL delivery, and then perform a URB
 	public void bebDeliverMessage(Message message) {
-    	//Update ack
     	String key = message.getAppLayerKey();
     	if (ackURBStatus.containsKey(key) == false) {
     		ackURBStatus.put(key, new ArrayList<Integer>());
@@ -43,6 +56,7 @@ public class URBHandler {
     	urbDeliver(appMessage);
     }
 
+    //Function to forward a message and update forward status
    	public void forwardMessage(Message message) {
 
 		String key = message.getAppLayerKey();
@@ -57,6 +71,7 @@ public class URBHandler {
     	}
     }
 
+    //Function to forward-broadcast a message
 	public void bebBroadcastMessage(Message message) {
 
 		Message msgToSend;
@@ -70,33 +85,26 @@ public class URBHandler {
         }
 	}
 
-
-
+    //Function to check whether a message can be URB delivered (majority ack)
     public boolean canDeliver(AppMessage message) {
 
     	int numHosts = hosts.size();
     	String key = message.getKey();
-    	//System.out.println(ackURBStatus.get(key).size());
-    	//System.out.println(numHosts/2);
     	if ((ackURBStatus.get(key).size() >= numHosts/2) && (delivered.contains(message) == false)) {
     		return true;
     	}
     	return false;
     }
 
+    //Function to URB deliver a message
     public void urbDeliver(AppMessage message) {
-    	System.out.println("in urb deliver");
-    	System.out.println(ackURBStatus);
-    	if (canDeliver(message)) {
-    		System.out.println("We're URB delivering here: ");
-    		System.out.println(ackURBStatus);
+    	
+        if (canDeliver(message)) {
     		delivered.add(message);
-    		for (AppMessage m: delivered) {
-    			System.out.println(m.getKey());
-    		}
     	}
     }
 
+    //Function to create a Message object for forwarding
  	public Message createForwardMessage(Message oldMessage, Host srcHost, Host dstHost) {
 
     	try {
@@ -119,6 +127,7 @@ public class URBHandler {
         return null;
     }
 
+    //Function to get the URB delivered list of messages
     public static List<AppMessage> getDeliveredList() {
     	return delivered;
     }

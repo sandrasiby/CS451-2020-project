@@ -1,10 +1,7 @@
 package cs451;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.HashMap;
 import java.util.concurrent.*;
 import java.util.Queue;
@@ -15,7 +12,25 @@ import java.util.ArrayList;
 import java.util.PriorityQueue;
 import java.lang.*;
 
+/* The Sender class is used to handle message sending. It runs in a thread.
+*/
+
 public class Sender extends Thread {
+
+    /*  Sender consists of the following:
+        uLink: UDPLink object to send messages as datagrams
+        sendMessageQueue: priority queue to which messages are added to be sent (priority decided by comparator)
+        sendAckQueue: queue to which ack messages are added to be sent
+        window: window that takes in a sub-set of messages from send queues to be sent at a time
+        maxWindowSize: window size for normal messages (set to 10)
+        ackWindowSize: window size for ack messages (set to 10)
+        sentStatus: hashmap to keep track of messages that are received (via acks)
+        retransmissionStatus: hashmap to keep track of how many retransmissions occurred for a message
+        maxRetransmissions: maximum number of retransmissions allowed (set to 3)
+        latestBcastMsg: variable to keep track of the latest message sequence that was broadcast
+        broadcastList: list of messages that were broadcast. Used to write to output file.
+        running: a boolean value to keep a thread running
+    */
 
 	private UDPLink uLink;
 	private boolean running;
@@ -51,6 +66,7 @@ public class Sender extends Thread {
         this.myHost = myHost;
 	}
 
+    //Thread running to handle message sending
 	public void run() {
 
         running = true;
@@ -62,7 +78,7 @@ public class Sender extends Thread {
 
         while (running) {
 
-            //We check the status of sent messages, to see what needs retransmission
+            //We check the status of sent messages in window, to see what needs retransmission
             for (Message m: window) {
                 key = m.getLinkLayerKey();
                 if (sentStatus.get(key) == 0) {
@@ -73,6 +89,7 @@ public class Sender extends Thread {
                 }
             }
 
+            //Clear window to add new messages
             window.clear();
 
             //We check the main queue for things to be sent, and add to window
@@ -84,6 +101,7 @@ public class Sender extends Thread {
                     window.add(m);
                 }
 
+                //Send each message in the window
                 for (Message m: window) {
                     messageStatus = uLink.sendMessage(m);
                     if ((m.getDstId() == numHosts) &&
@@ -95,10 +113,9 @@ public class Sender extends Thread {
                 }
             }
  
- 			//System.out.println("Check ACK send queue");
+            //Send acks in ack queue, one window at a time
  			if (sendAckQueue.size() > 0) {
- 				//System.out.println("There are messages to send");
-                int counter = 0;
+ 				int counter = 0;
                 windowSize = Math.min(ackWindowSize, sendAckQueue.size());
                 while (counter < windowSize) {
                     messageToSend = sendAckQueue.peek();
@@ -112,19 +129,13 @@ public class Sender extends Thread {
                     counter++;
                 }
  			}
-
-            //sleep(100);
-
- 		// 	try {
-			// 	TimeUnit.SECONDS.sleep(1);
-			// } catch (InterruptedException e) {
-			// 	e.printStackTrace();
-			// }
         }
 
         System.out.println("We stopped running");
     }
 
+    //Function to add messages to the send queue. 
+    //Also adds an entry for a message in the delivery and retransmission status hashmaps
     public void sendMessage(Message message) {
 
     	String key;
@@ -134,40 +145,28 @@ public class Sender extends Thread {
 
     	if (msgType.equals("NORMAL")) {
     		sendMessageQueue.add(message);
-    		//System.out.println("Added to queue: ");
-    		//message.printMessage();
-            // System.out.println("Messages in queue are:");
-            // for (Message m: sendMessageQueue) {
-            //     System.out.println(message.getLinkLayerKey());
-            // }
-    		//System.out.println(sendMessageQueue);
     		if (sentStatus.containsKey(key) == false) {
 				sentStatus.put(key, 0);
-				//System.out.println("Added to hashmap: " + sentStatus);
 			}
             if (retransmissionStatus.containsKey(key) == false) {
                 retransmissionStatus.put(key, 0);
             }
     	} else if (msgType.equals("ACK")) {
-    		//System.out.println("Added to ACK queue");
-    		//if (sentStatus.containsKey(key)) { 
-    		//	if (sentStatus.get(key) == 0) {
-    				//System.out.println("Added to ack queue: ");
-    				//message.printMessage();
-    				sendAckQueue.add(message);
-    		//	}
-    		//}
+    		sendAckQueue.add(message);
     	}    	
     }
 
-     public static List<Message> getBroadcastList() {
+    //Function to get the list of broadcast messages
+    public static List<Message> getBroadcastList() {
     	return broadcastList;
     }
 
+    //Function to get the UDP link for datagram exchange
     public UDPLink getLink() {
     	return uLink;
     }
 
+    //Function to calculate priority of messages for priority queue (description in comparator)
     public double getPriority(Message m) {
         
         int s = m.getContent();
@@ -188,6 +187,10 @@ public class Sender extends Thread {
         return 1/(s * h * Math.pow(r + 1, 2));
     }
 
+    //Overriding priority queue's comparator function to generate own own set of priorities
+    //Used this as a reference on how to override: 
+    //https://www.geeksforgeeks.org/implement-priorityqueue-comparator-java/
+
     public Comparator<Message> messageComparator = new Comparator<Message>(){
         @Override
         public int compare(Message m1, Message m2) {
@@ -195,7 +198,7 @@ public class Sender extends Thread {
             //Lower sequences are more important than higher sequences
             //A host's own message is more important than a forward
             //First transmission is more important than subsequent re-transmissions.
-            //Each subsequent retransmission goes lower in importance (similar to an exponential back-off)
+            //Each subsequent retransmission goes lower in importance (similar idea to an exponential back-off)
             //Based on this: we calculate priority P as:
             //P = 1/(s * h * (r+1)^2)
             // s = sequence number, h = sender (1 for own message, 2 for forwards), r = retransmission status
@@ -209,6 +212,4 @@ public class Sender extends Thread {
             return 0;
         }
     };
-
-
 }

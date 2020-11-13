@@ -1,17 +1,13 @@
 package cs451;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.util.HashMap;
-import java.util.concurrent.*;
-import java.util.List;
-import java.util.ArrayList;
+
+/* The ShutdownHook class is used to handle process crash.
+*/
 
 public class ShutdownHook extends Thread {
 
+	//Function to write to files on shut down
 	@Override
 	public void run(){
 		System.out.println("Shutting down and writing to files");

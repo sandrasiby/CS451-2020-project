@@ -1,23 +1,26 @@
 package cs451;
 
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.SocketException;
 import java.util.List;
 import java.net.UnknownHostException;
 import java.util.concurrent.*; 
 
+/* The Broadcast class is used to set up everything and kick off the broadcast of messages. 
+*/
+
 public class Broadcast {
 
-	private int status;
+	/*  Broadcast consists of the following:
+        mySender: Sender object to handle message sending (thread)
+        myReceiver: Receiver object to handle message receiving (thread)
+    */
+
 	private Sender mySender;
 	private Receiver myReceiver;
 
 	public Broadcast(Host myHost, List<Host> hosts, FileHandler fh) {
 		
-		this.status = 0;
 		int numHosts = hosts.size();
 
 		try {
@@ -43,18 +46,15 @@ public class Broadcast {
         }
 	}
 
+	//Function to perform broadcast. Sends every message to every process
 	public boolean sendMessages(int totalMessages, List<Host> hosts, Host myHost) {
-        //For each message
-        //For each host
-        //Send to all hosts
+ 
         Message msgToSend;
-
     	System.out.println("Process: " + Integer.toString(myHost.getId()));
         for (int m = 1; m < totalMessages + 1; m++) {
-            System.out.println("Sending message " + Integer.toString(m));
+            System.out.println("Sending message: " + Integer.toString(m));
             for (Host host: hosts) {
-            	System.out.println("Send message to: " + Integer.toString(host.getPort()));
-            	//Might change format of message. Current format: m_dstID
+            	System.out.println("Send message to: " + Integer.toString(host.getId()));
             	msgToSend = createMessage(m, myHost, host);
             	mySender.sendMessage(msgToSend);
             }
@@ -62,6 +62,7 @@ public class Broadcast {
         return false;
     }
 
+    //Function to create a Message object for sending
     public Message createMessage(int m, Host srcHost, Host dstHost) {
 
     	try {
