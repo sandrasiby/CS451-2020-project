@@ -37,7 +37,7 @@ public class Sender extends Thread {
         int port = myHost.getPort();
         InetAddress address = InetAddress.getByName(myHost.getIp());
 		this.uLink = new UDPLink(port, address);
-		this.sendMessageQueue = new PriorityQueue<>(10, messageComparator);
+		this.sendMessageQueue = new PriorityBlockingQueue<>(10, messageComparator);
 		this.sendAckQueue = new ConcurrentLinkedQueue<>();
 		this.sentStatus = new ConcurrentHashMap<String, Integer>();
         this.retransmissionStatus = new ConcurrentHashMap<String, Integer>();
@@ -69,8 +69,6 @@ public class Sender extends Thread {
                     retransmissionStatus.computeIfPresent(key, (k, v) -> v + 1);
                     if (retransmissionStatus.get(key) <= maxRetransmissions) {
                         sendMessageQueue.add(m);
-                    } else {
-                        System.out.println("We exceeded max retransmission!");
                     }
                 }
             }
@@ -115,11 +113,13 @@ public class Sender extends Thread {
                 }
  			}
 
- 			try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+            //sleep(100);
+
+ 		// 	try {
+			// 	TimeUnit.SECONDS.sleep(1);
+			// } catch (InterruptedException e) {
+			// 	e.printStackTrace();
+			// }
         }
 
         System.out.println("We stopped running");
@@ -129,14 +129,13 @@ public class Sender extends Thread {
 
     	String key;
     	String msgType = message.getType();
-    	//System.out.println("In Sender.sendmsg, Getting message type: " + msgType);
-    	//key = Integer.toString(message.getContent()) + "_" + Integer.toString(message.getDstId());
+    	
         key = message.getLinkLayerKey();
 
     	if (msgType.equals("NORMAL")) {
     		sendMessageQueue.add(message);
-    		System.out.println("Added to queue: ");
-    		message.printMessage();
+    		//System.out.println("Added to queue: ");
+    		//message.printMessage();
             // System.out.println("Messages in queue are:");
             // for (Message m: sendMessageQueue) {
             //     System.out.println(message.getLinkLayerKey());
@@ -144,7 +143,7 @@ public class Sender extends Thread {
     		//System.out.println(sendMessageQueue);
     		if (sentStatus.containsKey(key) == false) {
 				sentStatus.put(key, 0);
-				System.out.println("Added to hashmap: " + sentStatus);
+				//System.out.println("Added to hashmap: " + sentStatus);
 			}
             if (retransmissionStatus.containsKey(key) == false) {
                 retransmissionStatus.put(key, 0);
@@ -153,8 +152,8 @@ public class Sender extends Thread {
     		//System.out.println("Added to ACK queue");
     		//if (sentStatus.containsKey(key)) { 
     		//	if (sentStatus.get(key) == 0) {
-    				System.out.println("Added to ack queue: ");
-    				message.printMessage();
+    				//System.out.println("Added to ack queue: ");
+    				//message.printMessage();
     				sendAckQueue.add(message);
     		//	}
     		//}

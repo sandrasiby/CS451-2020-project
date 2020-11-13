@@ -15,27 +15,27 @@ public class Broadcast {
 	private Sender mySender;
 	private Receiver myReceiver;
 
-	public Broadcast(Host myHost, String outputFile, List<Host> hosts) {
+	public Broadcast(Host myHost, List<Host> hosts, FileHandler fh) {
 		
 		this.status = 0;
 		int numHosts = hosts.size();
 
 		try {
 			this.mySender = new Sender(myHost, numHosts);
-			this.myReceiver = new Receiver(mySender, outputFile, hosts, myHost);
+			this.myReceiver = new Receiver(mySender, fh, hosts, myHost);
 			this.myReceiver.start();
-			try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			// try {
+			// 	TimeUnit.SECONDS.sleep(1);
+			// } catch (InterruptedException e) {
+			// 	e.printStackTrace();
+			// }
 			this.mySender.start();
 			System.out.println("Started sender and receiver threads");
-			try {
-				TimeUnit.SECONDS.sleep(1);
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
+			// try {
+			// 	TimeUnit.SECONDS.sleep(1);
+			// } catch (InterruptedException e) {
+			// 	e.printStackTrace();
+			// }
 		} catch (UnknownHostException e) {
             e.printStackTrace();
         } catch (IOException e) {

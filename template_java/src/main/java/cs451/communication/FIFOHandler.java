@@ -27,7 +27,6 @@ public class FIFOHandler {
 	}
 
 	public void handleReceivedMessage(Message message) {
-		System.out.println("We're fifo handling");
 		urb.bebDeliverMessage(message);
 		fifoDeliver();
 	}

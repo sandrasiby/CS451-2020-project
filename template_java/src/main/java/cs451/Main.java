@@ -51,8 +51,8 @@ public class Main {
         }
 
 
-        Coordinator coordinator = new Coordinator(parser.myId(), parser.barrierIp(), parser.barrierPort(), parser.signalIp(), parser.signalPort());
-
+    Coordinator coordinator = new Coordinator(parser.myId(), parser.barrierIp(), parser.barrierPort(), parser.signalIp(), parser.signalPort());
+    FileHandler fh = new FileHandler(parser.output());
 	System.out.println("Waiting for all processes for finish initialization");
         coordinator.waitOnBarrier();
 
@@ -63,7 +63,7 @@ public class Main {
         System.out.println("messages!" + Integer.toString(totalMessages));
         Host myHost = parser.getMyHost();
         List<Host> allHosts = parser.hosts();
-        Broadcast broadcaster = new Broadcast(myHost, parser.output(), allHosts);
+        Broadcast broadcaster = new Broadcast(myHost, allHosts, fh);
         broadcaster.sendMessages(totalMessages, allHosts, myHost);
     }
 

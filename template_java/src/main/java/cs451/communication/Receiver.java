@@ -21,12 +21,12 @@ public class Receiver extends Thread {
 	//private static URBHandler urb;
 	private static FIFOHandler fifo;
 
-	public Receiver(Sender sender, String outputFile, List<Host> hosts, Host myHost) throws IOException {
+	public Receiver(Sender sender, FileHandler fh, List<Host> hosts, Host myHost) throws IOException {
 		//this.uLink = new UDPLink(port, address);
 		this.sender = sender;
 		this.deliveredStatus = new ConcurrentHashMap<Message, Integer>();
 		this.delivered = new ArrayList<>();
-		this.fh = new FileHandler(outputFile);
+		this.fh = fh;
 		//this.urb = new URBHandler(sender, hosts, myHost);
 		this.fifo = new FIFOHandler(sender, hosts, myHost);
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
@@ -41,38 +41,42 @@ public class Receiver extends Thread {
         System.out.println("Start Receiver Thread");
  
         while (running) {
+
+        	//System.out.println("in receive thread");
         	receivedMsg = sender.getLink().receiveMessage();
- 			String msgType = receivedMsg.getType();
- 			//System.out.println("Received message: " + msgType);
+        	if (receivedMsg != null) {
+	 			String msgType = receivedMsg.getType();
+	 			//System.out.println("Received message: " + msgType);
 
- 			if (msgType.equals("NORMAL")) {
- 				//Got message: send ACK
- 				//System.out.println("Got normal message!");
- 				Message ackMessage = new Message(receivedMsg.getContent(),
- 					receivedMsg.getOriginalSrcId(),
- 					receivedMsg.getDstAddress(), receivedMsg.getDstPort(), receivedMsg.getDstId(),
- 					receivedMsg.getSrcAddress(), receivedMsg.getSrcPort(), 
- 					receivedMsg.getSrcId(), "ACK");
- 				//System.out.println("Created ack message " + ackMessage);
- 				sender.sendMessage(ackMessage);
- 				//urb.bebDeliverMessage(receivedMsg);
- 				//deliverMessagePL(receivedMsg);
- 				fifo.handleReceivedMessage(receivedMsg);
+	 			if (msgType.equals("NORMAL")) {
+	 				//Got message: send ACK
+	 				//System.out.println("Got normal message!");
+	 				Message ackMessage = new Message(receivedMsg.getContent(),
+	 					receivedMsg.getOriginalSrcId(),
+	 					receivedMsg.getDstAddress(), receivedMsg.getDstPort(), receivedMsg.getDstId(),
+	 					receivedMsg.getSrcAddress(), receivedMsg.getSrcPort(), 
+	 					receivedMsg.getSrcId(), "ACK");
+	 				//System.out.println("Created ack message " + ackMessage);
+	 				sender.sendMessage(ackMessage);
+	 				//urb.bebDeliverMessage(receivedMsg);
+	 				//deliverMessagePL(receivedMsg);
+	 				fifo.handleReceivedMessage(receivedMsg);
 
- 			} else if (msgType.equals("ACK")) {
- 				//Got ack: update sentStatus
- 				//System.out.println("Got ACK, update status");
- 				//key = receivedMsg.getContent() + "_" + Integer.toString(receivedMsg.getSrcId());
- 				key = receivedMsg.getLinkLayerAckKey();
- 				if (sender.sentStatus.containsKey(key)) {
- 					if (sender.sentStatus.get(key) == 0) {
- 						sender.sentStatus.computeIfPresent(key, (k, v) -> new Integer(1));
- 						//Integer oldStatus = sender.sentStatus.replace(receivedMsg, 1);
- 						//System.out.println(sender.sentStatus);
- 					}
- 				}
- 			}
-        }
+	 			} else if (msgType.equals("ACK")) {
+	 				//Got ack: update sentStatus
+	 				//System.out.println("Got ACK, update status");
+	 				//key = receivedMsg.getContent() + "_" + Integer.toString(receivedMsg.getSrcId());
+	 				key = receivedMsg.getLinkLayerAckKey();
+	 				if (sender.sentStatus.containsKey(key)) {
+	 					if (sender.sentStatus.get(key) == 0) {
+	 						sender.sentStatus.computeIfPresent(key, (k, v) -> new Integer(1));
+	 						//Integer oldStatus = sender.sentStatus.replace(receivedMsg, 1);
+	 						//System.out.println(sender.sentStatus);
+	 					}
+	 				}
+	 			}
+	        }
+	    }
     }
 
     public void deliverMessagePL(Message message) {

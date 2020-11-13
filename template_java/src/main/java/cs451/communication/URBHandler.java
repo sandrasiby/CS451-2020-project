@@ -31,9 +31,8 @@ public class URBHandler {
 
 	public void bebDeliverMessage(Message message) {
     	//Update ack
-    	System.out.println("In bebdeliver");
     	String key = message.getAppLayerKey();
-    	if (ackURBStatus.contains(key) == false) {
+    	if (ackURBStatus.containsKey(key) == false) {
     		ackURBStatus.put(key, new ArrayList<Integer>());
     	}
     	List<Integer> receivedIds = ackURBStatus.get(key);
@@ -86,6 +85,8 @@ public class URBHandler {
     }
 
     public void urbDeliver(AppMessage message) {
+    	System.out.println("in urb deliver");
+    	System.out.println(ackURBStatus);
     	if (canDeliver(message)) {
     		System.out.println("We're URB delivering here: ");
     		System.out.println(ackURBStatus);

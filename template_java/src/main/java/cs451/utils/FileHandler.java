@@ -15,6 +15,7 @@ public class FileHandler {
 	public FileHandler(String outputFile) {
 		
 		try {
+			System.out.println("In file handler");
 			this.file = new File(outputFile);
 			if(!this.file.exists()){
 				System.out.println("creating file: " + outputFile);
