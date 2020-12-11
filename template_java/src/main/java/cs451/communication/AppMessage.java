@@ -24,11 +24,13 @@ public class AppMessage {
 
 	private int msgContent;
 	private int originalSrcId;
+	private int[] vectorClock;
 
-	public AppMessage(int msgContent, int originalSrcId) {
+	public AppMessage(int msgContent, int originalSrcId, int[] vectorClock) {
 
 		this.msgContent = msgContent;
 		this.originalSrcId = originalSrcId;
+		this.vectorClock = vectorClock;
 	}
 
 	//Function to get message content
@@ -41,15 +43,39 @@ public class AppMessage {
 		return originalSrcId;
 	}
 
+	public int[] getVectorClock() {
+		return vectorClock;
+	}
+
+
 	//Function to print message content as a string
 	public String getContentAsString() {
 		return Integer.toString(msgContent);
+	}
+
+	//Function to print vector clock as a string
+	public String getVectorClockAsString() {
+		String vc = " | ";
+		for (int i = 0; i < vectorClock.length; i++) {
+			vc += Integer.toString(vectorClock[i]) + " | ";
+		}
+		return vc;
 	}
 
 	//Function to generate an app layer key
 	//We use this key in delivery
 	public String getKey() {
 		return Integer.toString(msgContent) + "_" + Integer.toString(originalSrcId);
+	}
+
+	//Function to pretty-print a message
+	public void printMessage() {
+
+		System.out.println("****** APP MESSAGE DATA ******");
+		System.out.println("Content: " + Integer.toString(msgContent));
+		System.out.println("Original Source: " + Integer.toString(originalSrcId));
+		System.out.println("Vector Clock: " + getVectorClockAsString());
+		System.out.println("**************************");
 	}
 
 	//The functions below are overrides to calculate equality of AppMessage objects.

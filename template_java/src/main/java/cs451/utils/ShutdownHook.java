@@ -14,7 +14,7 @@ public class ShutdownHook extends Thread {
 		Receiver.getFileHandler().writeBroadcastList(Receiver.getSender().getBroadcastList());
 		//Receiver.getFileHandler().writeDeliverList(Receiver.getDeliveredList());
 		//Receiver.getFileHandler().writeDeliverList(Receiver.getURBHandler().getDeliveredList());
-		Receiver.getFileHandler().writeDeliverList(Receiver.getFIFOHandler().getDeliveredList());
+		Receiver.getFileHandler().writeDeliverList(Receiver.getLCBHandler().getDeliveredList());
 		Receiver.getFileHandler().close();
 	}
 }

@@ -108,6 +108,10 @@ public class Parser {
         return configParser.getTotalMessages();
     }
 
+    public List<Integer> dependencies(int lineNumber) {
+        return configParser.getDependencies(lineNumber);
+    }
+
     public Host getMyHost() {
         for (Host host: hosts()) {
             if (host.getId() == myId()) {

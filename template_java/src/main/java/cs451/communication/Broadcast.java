@@ -18,13 +18,13 @@ public class Broadcast {
 
 	private Sender mySender;
 	private Receiver myReceiver;
-
-	public Broadcast(Host myHost, List<Host> hosts, FileHandler fh) {
+	
+	public Broadcast(Host myHost, List<Host> hosts, FileHandler fh, List<Integer> dependencies) {
 		
 		int numHosts = hosts.size();
 
 		try {
-			this.mySender = new Sender(myHost, numHosts);
+			this.mySender = new Sender(myHost, numHosts, dependencies);
 			this.myReceiver = new Receiver(mySender, fh, hosts, myHost);
 			this.myReceiver.start();
 			// try {
@@ -55,7 +55,7 @@ public class Broadcast {
             System.out.println("Sending message: " + Integer.toString(m));
             for (Host host: hosts) {
             	System.out.println("Send message to: " + Integer.toString(host.getId()));
-            	msgToSend = createMessage(m, myHost, host);
+            	msgToSend = createMessage(m, myHost, host, hosts.size());
             	mySender.sendMessage(msgToSend);
             }
         }
@@ -63,7 +63,7 @@ public class Broadcast {
     }
 
     //Function to create a Message object for sending
-    public Message createMessage(int m, Host srcHost, Host dstHost) {
+    public Message createMessage(int m, Host srcHost, Host dstHost, int numHosts) {
 
     	try {
 	    	int msgContent = m;
@@ -77,7 +77,7 @@ public class Broadcast {
 	    	String msgType = "NORMAL";
 
 	    	Message message = new Message(msgContent, originalSrcId, srcAddress, srcPort, srcId,
-	    		dstAddress, dstPort, dstId, msgType);
+	    		dstAddress, dstPort, dstId, msgType, numHosts);
     		return message;
 	    } catch (UnknownHostException e) {
             e.printStackTrace();

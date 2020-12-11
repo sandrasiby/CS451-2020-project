@@ -29,6 +29,7 @@ public class URBHandler {
 	public ConcurrentHashMap<String, Integer> forwardStatus;
 	public ConcurrentHashMap<String, List<Integer>> ackURBStatus;
 	private static List<AppMessage> delivered;
+    private static List<AppMessage> pending;
 	private Sender sender;
 	private Host myHost;
 	private List<Host> hosts;
@@ -40,6 +41,7 @@ public class URBHandler {
 		this.myHost = myHost;
 		this.hosts = hosts;
 		this.delivered = new ArrayList<>();
+        this.pending = new ArrayList<>();
 	}
 
     //Function to update delivery status for a PL delivery, and then perform a URB
@@ -52,7 +54,8 @@ public class URBHandler {
     	if (receivedIds.contains(message.getSrcId()) == false)
     		ackURBStatus.get(key).add(message.getSrcId());
     	forwardMessage(message);
-    	AppMessage appMessage = new AppMessage(message.getContent(), message.getOriginalSrcId());
+    	AppMessage appMessage = new AppMessage(message.getContent(), 
+            message.getOriginalSrcId(), message.getVectorClock());
     	urbDeliver(appMessage);
     }
 
@@ -101,6 +104,7 @@ public class URBHandler {
     	
         if (canDeliver(message)) {
     		delivered.add(message);
+            pending.add(message);
     	}
     }
 
@@ -119,7 +123,8 @@ public class URBHandler {
 	    	String msgType = "NORMAL";
 
 	    	Message message = new Message(msgContent, originalSrcId, srcAddress, srcPort, srcId,
-	    		dstAddress, dstPort, dstId, msgType);
+	    		dstAddress, dstPort, dstId, msgType, hosts.size());
+            message.setVectorClock(oldMessage.getVectorClock());
     		return message;
 	    } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -130,6 +135,14 @@ public class URBHandler {
     //Function to get the URB delivered list of messages
     public static List<AppMessage> getDeliveredList() {
     	return delivered;
+    }
+
+    public static List<AppMessage> getPendingList() {
+        return pending;
+    }
+
+    public static void removeFromPendingList(AppMessage m) {
+        pending.remove(m);
     }
 
 }

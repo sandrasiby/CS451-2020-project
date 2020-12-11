@@ -38,9 +38,11 @@ public class Message implements Serializable {
 	private int srcId;
 	private int dstId;
 	private String msgType;
+	private int[] vectorClock;
 
 	public Message(int msgContent, int originalSrcId, InetAddress srcAddress, 
-		int srcPort, int srcId, InetAddress dstAddress, int dstPort, int dstId, String msgType) {
+		int srcPort, int srcId, InetAddress dstAddress, int dstPort, int dstId, 
+		String msgType, int numProcesses) {
 		this.msgContent = msgContent;
 		this.originalSrcId = originalSrcId;
 		this.srcPort = srcPort;
@@ -50,6 +52,7 @@ public class Message implements Serializable {
 		this.dstAddress = dstAddress;
 		this.dstId = dstId;
 		this.msgType = msgType;
+		this.vectorClock = new int[numProcesses];
 	}
 
 	//Function to get message content
@@ -95,6 +98,14 @@ public class Message implements Serializable {
 	//Function to get message type
 	public String getType() {
 		return msgType;
+	}
+
+	public int[] getVectorClock() {
+		return vectorClock;
+	}
+
+	public void setVectorClock(int[] newVectorClock) {
+		this.vectorClock = newVectorClock;
 	}
 
 	//Function to pretty-print a message

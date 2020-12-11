@@ -25,13 +25,15 @@ public class Receiver extends Thread {
 	private static Sender sender;
 	private static List<Message> delivered;
 	private static FileHandler fh;
-	private static FIFOHandler fifo;
+	private static LCBHandler lcb;
+    public int numHosts;
 
 	public Receiver(Sender sender, FileHandler fh, List<Host> hosts, Host myHost) throws IOException {
 		this.sender = sender;
 		this.delivered = new ArrayList<>();
 		this.fh = fh;
-		this.fifo = new FIFOHandler(sender, hosts, myHost);
+		this.lcb = new LCBHandler(sender, hosts, myHost);
+        this.numHosts = hosts.size();
 		Runtime.getRuntime().addShutdownHook(new ShutdownHook());
 	}
 
@@ -56,9 +58,10 @@ public class Receiver extends Thread {
 	 					receivedMsg.getOriginalSrcId(),
 	 					receivedMsg.getDstAddress(), receivedMsg.getDstPort(), receivedMsg.getDstId(),
 	 					receivedMsg.getSrcAddress(), receivedMsg.getSrcPort(), 
-	 					receivedMsg.getSrcId(), "ACK");
+	 					receivedMsg.getSrcId(), "ACK", numHosts);
+                    ackMessage.setVectorClock(receivedMsg.getVectorClock());
 	 				sender.sendMessage(ackMessage);
-	 				fifo.handleReceivedMessage(receivedMsg);
+	 				lcb.handleReceivedMessage(receivedMsg);
 
 	 			} else if (msgType.equals("ACK")) {
 	 				//Got ack: update sentStatus
@@ -99,8 +102,8 @@ public class Receiver extends Thread {
     }
 
     //Function to get FIFOHandler
-    public static FIFOHandler getFIFOHandler() {
-    	return fifo;
+    public static LCBHandler getLCBHandler() {
+    	return lcb;
     }
 }
 

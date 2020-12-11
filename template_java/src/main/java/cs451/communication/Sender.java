@@ -46,8 +46,10 @@ public class Sender extends Thread {
     private int maxRetransmissions;
     private Host myHost;
     private int ackWindowSize;
+    private int[] vectorClock;
+    private List<Integer> dependencies;
 
-	public Sender(Host myHost, int numHosts) throws IOException {
+	public Sender(Host myHost, int numHosts, List<Integer> dependencies) throws IOException {
         
         int port = myHost.getPort();
         InetAddress address = InetAddress.getByName(myHost.getIp());
@@ -64,6 +66,8 @@ public class Sender extends Thread {
         this.window = new ArrayList<>();
         this.maxRetransmissions = 3;
         this.myHost = myHost;
+        this.vectorClock = new int[numHosts];
+        this.dependencies = dependencies;
 	}
 
     //Thread running to handle message sending
@@ -83,6 +87,11 @@ public class Sender extends Thread {
                 key = m.getLinkLayerKey();
                 if (sentStatus.get(key) == 0) {
                     retransmissionStatus.computeIfPresent(key, (k, v) -> v + 1);
+                    if (retransmissionStatus.containsKey(key) == false) {
+                        System.out.println("did not find key!");
+                        System.out.println(key);
+                        System.out.println(retransmissionStatus);
+                    }
                     if (retransmissionStatus.get(key) <= maxRetransmissions) {
                         sendMessageQueue.add(m);
                     }
@@ -103,9 +112,13 @@ public class Sender extends Thread {
 
                 //Send each message in the window
                 for (Message m: window) {
+                    int[] newVectorClock = setMessageVectorClock(m);
+                    m.setVectorClock(newVectorClock);
                     messageStatus = uLink.sendMessage(m);
-                    if ((m.getDstId() == numHosts) &&
-                        (m.getSrcId() == myHost.getId()) &&
+                    // if ((m.getDstId() == numHosts) &&
+                    //     (m.getSrcId() == myHost.getId()) &&
+                    //     (m.getContent() == latestBcastMsg + 1)) {
+                    if ((m.getSrcId() == myHost.getId()) && 
                         (m.getContent() == latestBcastMsg + 1)) {
                             broadcastList.add(m);
                             latestBcastMsg = latestBcastMsg + 1;
@@ -149,11 +162,21 @@ public class Sender extends Thread {
 				sentStatus.put(key, 0);
 			}
             if (retransmissionStatus.containsKey(key) == false) {
+                System.out.println("Put key:");
+                System.out.println(key);
                 retransmissionStatus.put(key, 0);
             }
     	} else if (msgType.equals("ACK")) {
     		sendAckQueue.add(message);
     	}    	
+    }
+
+    public int[] getProcessVectorClock() {
+        return vectorClock;
+    }
+
+    public void updateVectorClock(int indexToUpdate) {
+        vectorClock[indexToUpdate] += 1;
     }
 
     //Function to get the list of broadcast messages
@@ -164,6 +187,21 @@ public class Sender extends Thread {
     //Function to get the UDP link for datagram exchange
     public UDPLink getLink() {
     	return uLink;
+    }
+
+    public int[] setMessageVectorClock(Message m) {
+
+        int[] newMessageVectorClock = m.getVectorClock();
+
+        for (int i = 0; i < newMessageVectorClock.length; i++) {
+            if (dependencies.contains(i+1)) {
+                newMessageVectorClock[i] = vectorClock[i];
+            } else {
+                newMessageVectorClock[i] = 0;
+            }
+        }
+
+        return newMessageVectorClock;
     }
 
     //Function to calculate priority of messages for priority queue (description in comparator)

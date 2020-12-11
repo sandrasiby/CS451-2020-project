@@ -4,7 +4,8 @@ import java.io.File;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
-
+import java.util.List;
+import java.util.ArrayList;
 
 public class ConfigParser {
 
@@ -33,6 +34,27 @@ public class ConfigParser {
             return -1;
         }
     	return messages;
+    }
+
+    public List<Integer> getDependencies(int lineNumber) {
+
+        String filename = getPath();
+        List<Integer> dependencies = new ArrayList<>();
+
+        try(BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            for (int i = 0; i < lineNumber; i++)
+            {
+                br.readLine();
+            }
+            String requiredLine = br.readLine();
+            String[] parts = requiredLine.trim().split(" ");
+            for (int count = 0; count < parts.length; count++) {
+                dependencies.add(Integer.parseInt(parts[count].trim()));
+            }
+        } catch (IOException e) {
+            System.err.println("Problem with the config file!");
+        }
+        return dependencies;
     }
 
 }

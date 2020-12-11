@@ -58,13 +58,25 @@ public class Main {
         coordinator.waitOnBarrier();
 
 	System.out.println("Broadcasting messages...");
-    //Start sending
+    //Start sending -- FIFO
+    // int totalMessages = parser.totalMessages();
+    // if (totalMessages >= 0) {
+    //     System.out.println("Total messages to send: " + Integer.toString(totalMessages));
+    //     Host myHost = parser.getMyHost();
+    //     List<Host> allHosts = parser.hosts();
+    //     Broadcast broadcaster = new Broadcast(myHost, allHosts, fh);
+    //     broadcaster.sendMessages(totalMessages, allHosts, myHost);
+    // }
+
+    List<Integer> dependencies = parser.dependencies(parser.myId());
+    System.out.println(dependencies);
+
     int totalMessages = parser.totalMessages();
     if (totalMessages >= 0) {
         System.out.println("Total messages to send: " + Integer.toString(totalMessages));
         Host myHost = parser.getMyHost();
         List<Host> allHosts = parser.hosts();
-        Broadcast broadcaster = new Broadcast(myHost, allHosts, fh);
+        Broadcast broadcaster = new Broadcast(myHost, allHosts, fh, dependencies);
         broadcaster.sendMessages(totalMessages, allHosts, myHost);
     }
 
