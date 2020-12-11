@@ -121,9 +121,10 @@ public class URBHandler {
 	    	int dstPort = dstHost.getPort();
 	    	int dstId = dstHost.getId();
 	    	String msgType = "NORMAL";
+            int age = oldMessage.getAge() + 1;
 
 	    	Message message = new Message(msgContent, originalSrcId, srcAddress, srcPort, srcId,
-	    		dstAddress, dstPort, dstId, msgType, hosts.size());
+	    		dstAddress, dstPort, dstId, msgType, hosts.size(), age);
             message.setVectorClock(oldMessage.getVectorClock());
     		return message;
 	    } catch (UnknownHostException e) {

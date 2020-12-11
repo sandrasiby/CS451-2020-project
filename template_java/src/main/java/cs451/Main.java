@@ -74,6 +74,8 @@ public class Main {
     int totalMessages = parser.totalMessages();
     if (totalMessages >= 0) {
         System.out.println("Total messages to send: " + Integer.toString(totalMessages));
+        System.out.println("Dependencies for process: ");
+        System.out.println(dependencies);
         Host myHost = parser.getMyHost();
         List<Host> allHosts = parser.hosts();
         Broadcast broadcaster = new Broadcast(myHost, allHosts, fh, dependencies);

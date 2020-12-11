@@ -58,7 +58,7 @@ public class Receiver extends Thread {
 	 					receivedMsg.getOriginalSrcId(),
 	 					receivedMsg.getDstAddress(), receivedMsg.getDstPort(), receivedMsg.getDstId(),
 	 					receivedMsg.getSrcAddress(), receivedMsg.getSrcPort(), 
-	 					receivedMsg.getSrcId(), "ACK", numHosts);
+	 					receivedMsg.getSrcId(), "ACK", numHosts, receivedMsg.getAge());
                     ackMessage.setVectorClock(receivedMsg.getVectorClock());
 	 				sender.sendMessage(ackMessage);
 	 				lcb.handleReceivedMessage(receivedMsg);

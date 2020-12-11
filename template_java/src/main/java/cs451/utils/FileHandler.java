@@ -37,6 +37,30 @@ public class FileHandler {
 	}
 
 	//Function to write broadcast info
+	public void writeAllList(List<LogMessage> allActions) {
+		
+		String line;
+		try {
+			for (LogMessage message: allActions) {
+				System.out.println("In here");
+				if (message.getType() == "b") {
+					line = "b " + message.getContentAsString();
+					bwriter.write(line);
+					bwriter.newLine();
+					bwriter.flush();
+				} else {
+					line = "d " + Integer.toString(message.getOriginalSrcId()) + " " + message.getContentAsString();
+					bwriter.write(line);
+					bwriter.newLine();
+					bwriter.flush();	
+				}
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	//Function to write broadcast info
 	public void writeBroadcastList(List<Message> broadcasted) {
 		
 		String line;

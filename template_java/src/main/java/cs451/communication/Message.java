@@ -39,10 +39,11 @@ public class Message implements Serializable {
 	private int dstId;
 	private String msgType;
 	private int[] vectorClock;
+	private int age;
 
 	public Message(int msgContent, int originalSrcId, InetAddress srcAddress, 
 		int srcPort, int srcId, InetAddress dstAddress, int dstPort, int dstId, 
-		String msgType, int numProcesses) {
+		String msgType, int numProcesses, int age) {
 		this.msgContent = msgContent;
 		this.originalSrcId = originalSrcId;
 		this.srcPort = srcPort;
@@ -53,6 +54,7 @@ public class Message implements Serializable {
 		this.dstId = dstId;
 		this.msgType = msgType;
 		this.vectorClock = new int[numProcesses];
+		this.age = age;
 	}
 
 	//Function to get message content
@@ -104,8 +106,25 @@ public class Message implements Serializable {
 		return vectorClock;
 	}
 
+	public int getAge() {
+		return age;
+	}
+
 	public void setVectorClock(int[] newVectorClock) {
-		this.vectorClock = newVectorClock;
+		this.vectorClock = newVectorClock.clone();
+	}
+
+	public void updateAge() {
+		this.age += 1;
+	}
+
+	//Function to print vector clock as a string
+	public String getVectorClockAsString() {
+		String vc = " | ";
+		for (int i = 0; i < vectorClock.length; i++) {
+			vc += Integer.toString(vectorClock[i]) + " | ";
+		}
+		return vc;
 	}
 
 	//Function to pretty-print a message
@@ -116,6 +135,7 @@ public class Message implements Serializable {
 		System.out.println("SrcID: " + Integer.toString(srcId));
 		System.out.println("DstID: " + Integer.toString(dstId));
 		System.out.println("Type: " + msgType);
+		System.out.println("Vector Clock: " + getVectorClockAsString());
 		System.out.println("**************************");
 	}
 

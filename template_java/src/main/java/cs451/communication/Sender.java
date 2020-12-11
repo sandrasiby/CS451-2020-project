@@ -48,6 +48,7 @@ public class Sender extends Thread {
     private int ackWindowSize;
     private int[] vectorClock;
     private List<Integer> dependencies;
+    private static List<LogMessage> allList;
 
 	public Sender(Host myHost, int numHosts, List<Integer> dependencies) throws IOException {
         
@@ -59,6 +60,7 @@ public class Sender extends Thread {
 		this.sentStatus = new ConcurrentHashMap<String, Integer>();
         this.retransmissionStatus = new ConcurrentHashMap<String, Integer>();
 		this.broadcastList = new ArrayList<>();
+        this.allList = new ArrayList<>();
 		this.latestBcastMsg = 0;
         this.maxWindowSize = 10;
         this.ackWindowSize = 10;
@@ -86,12 +88,10 @@ public class Sender extends Thread {
             for (Message m: window) {
                 key = m.getLinkLayerKey();
                 if (sentStatus.get(key) == 0) {
-                    retransmissionStatus.computeIfPresent(key, (k, v) -> v + 1);
                     if (retransmissionStatus.containsKey(key) == false) {
-                        System.out.println("did not find key!");
-                        System.out.println(key);
-                        System.out.println(retransmissionStatus);
+                        retransmissionStatus.put(key, 0);
                     }
+                    retransmissionStatus.computeIfPresent(key, (k, v) -> v + 1);
                     if (retransmissionStatus.get(key) <= maxRetransmissions) {
                         sendMessageQueue.add(m);
                     }
@@ -112,16 +112,29 @@ public class Sender extends Thread {
 
                 //Send each message in the window
                 for (Message m: window) {
-                    int[] newVectorClock = setMessageVectorClock(m);
-                    m.setVectorClock(newVectorClock);
+                    if (m.getOriginalSrcId() == myHost.getId()) {
+                        //Set vector clock only for own messages and first time
+                        if (m.getAge() == 0) {
+                            int[] newVectorClock = setMessageVectorClock(m);
+                            m.setVectorClock(newVectorClock);
+                            //System.out.println("Sending out message");
+                            //m.printMessage();
+                            //System.out.println("Process clock");
+                            //printVectorClock(vectorClock);
+                        }
+                    }
+                    m.updateAge();
                     messageStatus = uLink.sendMessage(m);
-                    // if ((m.getDstId() == numHosts) &&
-                    //     (m.getSrcId() == myHost.getId()) &&
-                    //     (m.getContent() == latestBcastMsg + 1)) {
-                    if ((m.getSrcId() == myHost.getId()) && 
-                        (m.getContent() == latestBcastMsg + 1)) {
+                    if ((m.getDstId() == numHosts) &&
+                         (m.getSrcId() == myHost.getId()) &&
+                         (m.getContent() == latestBcastMsg + 1)) {
+                    //if ((m.getSrcId() == myHost.getId()) && 
+                    //    (m.getContent() == latestBcastMsg + 1)) {
                             broadcastList.add(m);
+                            LogMessage lm = new LogMessage(m.getContent(), m.getOriginalSrcId(), "b");
+                            allList.add(lm);
                             latestBcastMsg = latestBcastMsg + 1;
+                            updateVectorClock(myHost.getId()-1);
                     }
                 }
             }
@@ -162,8 +175,6 @@ public class Sender extends Thread {
 				sentStatus.put(key, 0);
 			}
             if (retransmissionStatus.containsKey(key) == false) {
-                System.out.println("Put key:");
-                System.out.println(key);
                 retransmissionStatus.put(key, 0);
             }
     	} else if (msgType.equals("ACK")) {
@@ -179,9 +190,18 @@ public class Sender extends Thread {
         vectorClock[indexToUpdate] += 1;
     }
 
+    public void updateAllList(LogMessage lm) {
+        allList.add(lm);
+    }
+
     //Function to get the list of broadcast messages
     public static List<Message> getBroadcastList() {
     	return broadcastList;
+    }
+
+    //Function to get the list of broadcast messages
+    public static List<LogMessage> getAllList() {
+        return allList;
     }
 
     //Function to get the UDP link for datagram exchange
@@ -195,13 +215,22 @@ public class Sender extends Thread {
 
         for (int i = 0; i < newMessageVectorClock.length; i++) {
             if (dependencies.contains(i+1)) {
-                newMessageVectorClock[i] = vectorClock[i];
+                int value = vectorClock[i];
+                newMessageVectorClock[i] = value;
             } else {
                 newMessageVectorClock[i] = 0;
             }
         }
 
         return newMessageVectorClock;
+    }
+
+    public void printVectorClock(int[] vectorClock) {
+        String vc = " | ";
+        for (int i = 0; i < vectorClock.length; i++) {
+            vc += Integer.toString(vectorClock[i]) + " | ";
+        }
+        System.out.println(vc);
     }
 
     //Function to calculate priority of messages for priority queue (description in comparator)

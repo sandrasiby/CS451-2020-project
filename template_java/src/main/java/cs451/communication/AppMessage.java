@@ -30,7 +30,7 @@ public class AppMessage {
 
 		this.msgContent = msgContent;
 		this.originalSrcId = originalSrcId;
-		this.vectorClock = vectorClock;
+		this.vectorClock = vectorClock.clone();
 	}
 
 	//Function to get message content

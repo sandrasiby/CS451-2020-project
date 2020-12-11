@@ -53,17 +53,19 @@ public class Broadcast {
     	System.out.println("Process: " + Integer.toString(myHost.getId()));
         for (int m = 1; m < totalMessages + 1; m++) {
             System.out.println("Sending message: " + Integer.toString(m));
+            int msgAge = 0;
             for (Host host: hosts) {
             	System.out.println("Send message to: " + Integer.toString(host.getId()));
-            	msgToSend = createMessage(m, myHost, host, hosts.size());
+            	msgToSend = createMessage(m, myHost, host, hosts.size(), msgAge);
             	mySender.sendMessage(msgToSend);
+            	//msgAge += 1;
             }
         }
         return false;
     }
 
     //Function to create a Message object for sending
-    public Message createMessage(int m, Host srcHost, Host dstHost, int numHosts) {
+    public Message createMessage(int m, Host srcHost, Host dstHost, int numHosts, int msgAge) {
 
     	try {
 	    	int msgContent = m;
@@ -77,7 +79,7 @@ public class Broadcast {
 	    	String msgType = "NORMAL";
 
 	    	Message message = new Message(msgContent, originalSrcId, srcAddress, srcPort, srcId,
-	    		dstAddress, dstPort, dstId, msgType, numHosts);
+	    		dstAddress, dstPort, dstId, msgType, numHosts, msgAge);
     		return message;
 	    } catch (UnknownHostException e) {
             e.printStackTrace();

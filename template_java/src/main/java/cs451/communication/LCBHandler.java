@@ -31,6 +31,8 @@ public class LCBHandler {
 	public static List<AppMessage> lcbDelivered;
 	public static URBHandler urb;
 	private static Sender sender;
+	private Host myHost;
+	private int lastOwnDelivered; 
 
 	public LCBHandler(Sender sender, List<Host> hosts, Host myHost) {
 
@@ -38,6 +40,8 @@ public class LCBHandler {
 		this.lcbDelivered = new ArrayList<>();
 		this.sender = sender;
 		this.urb = new URBHandler(sender, hosts, myHost);
+		this.lastOwnDelivered = 0;
+		this.myHost = myHost;
 	}
 
 	//Function to perform URB processes and call FIFO delivery
@@ -50,33 +54,46 @@ public class LCBHandler {
 
 		int holdLCBDeliver = 0;
 		List<AppMessage> toRemove = new ArrayList<>();
+		List<AppMessage> pendingList = urb.getPendingList();
 
-		for (AppMessage m: urb.getPendingList()) {
+		for (AppMessage m: pendingList) {
 			int messageSender = m.getOriginalSrcId();
-			int[] messageVectorClock = m.getVectorClock();
-			int[] processVectorClock = sender.getProcessVectorClock();
 
-			for (int i = 0; i < messageVectorClock.length; i++) {
-				if (messageVectorClock[i] > processVectorClock[i]) {
-					System.out.println("Holding message:");
-					m.printMessage();
-					holdLCBDeliver += 1;
+			if (messageSender != myHost.getId()) {
+				int[] messageVectorClock = m.getVectorClock();
+				int[] processVectorClock = sender.getProcessVectorClock();
+
+				for (int i = 0; i < messageVectorClock.length; i++) {
+					if (messageVectorClock[i] > processVectorClock[i]) {
+						//System.out.println("Holding message:");
+						//m.printMessage();
+						holdLCBDeliver += 1;
+					}
 				}
-			}
 
-			if (holdLCBDeliver == 0) {
-				//System.out.println("Delivering message:");
-				//m.printMessage();
-				//System.out.println("Process clock:");
-				//printVectorClock(processVectorClock);
-				lcbDelivered.add(m);
-				toRemove.add(m);
-				sender.updateVectorClock(messageSender-1);
-				//System.out.println("Updated process clock to:");
-				//printVectorClock(sender.getProcessVectorClock());
-				//urb.removeFromPendingList(m);
-				//processVectorClock[messageSender-1] += 1;
-
+				if (holdLCBDeliver == 0) {
+					System.out.println("Delivering message:");
+					m.printMessage();
+					System.out.println("Process clock:");
+					printVectorClock(processVectorClock);
+					lcbDelivered.add(m);
+					LogMessage lm = new LogMessage(m.getContent(), m.getOriginalSrcId(), "d");
+					//lm.printMessage();
+					sender.updateAllList(lm);
+					toRemove.add(m);
+					sender.updateVectorClock(messageSender-1);
+					System.out.println("Updated process clock to:");
+					printVectorClock(sender.getProcessVectorClock());
+				}
+			} else {
+				if (m.getContent() == lastOwnDelivered + 1) {
+					lcbDelivered.add(m);
+					LogMessage lm = new LogMessage(m.getContent(), m.getOriginalSrcId(), "d");
+					//lm.printMessage();
+					sender.updateAllList(lm);
+					toRemove.add(m);
+					lastOwnDelivered += 1;
+				}
 			}
 		}
 
